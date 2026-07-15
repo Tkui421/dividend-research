@@ -669,6 +669,7 @@ function renderPF(){
   });
   const totCost=rows.reduce((s,r)=>s+r.cost,0);
   const totIncome=rows.reduce((s,r)=>s+r.income,0);
+  const totCur=rows.reduce((s,r)=>s+r.h.q*curPrice(r.d),0);
   const wAvgG=rows.reduce((s,r)=>s+r.income*r.g,0)/totIncome;
 
   /* holdings table */
@@ -707,11 +708,14 @@ function renderPF(){
   });
 
   /* summary strip */
+  const pl=totCur-totCost;
   $("#pf-summary").innerHTML=[
     [fmt$(totCost)+"$","שווי התיק (לפי עלות)"],
+    [fmt$(totCur)+"$",`שווי תיק נוכחי <span style="color:${pl>=0?'var(--green)':'var(--red)'}">(${pl>=0?"+":""}${(pl/totCost*100).toFixed(1)}%)</span>`],
     [fmt$2(totIncome)+"$","הכנסה שנתית צפויה"],
     [fmt$2(totIncome/12)+"$","ממוצע חודשי"],
     [(totIncome/totCost*100).toFixed(2)+"%","תשואת דיבידנד על העלות"],
+    [(totIncome/totCur*100).toFixed(2)+"%","תשואת דיבידנד נוכחית"],
     [wAvgG.toFixed(1)+"%","צמיחה שנתית משוקללת"],
   ].map(([v,l])=>`<div class="cell"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
 

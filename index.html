@@ -127,6 +127,36 @@ h3.sect:first-child{margin-top:0}
 .chartbox .cap{font-size:11.5px;color:var(--ink-faint);margin-top:8px;text-align:center}
 .note{border-inline-start:2px solid var(--gold-soft);padding:10px 16px;background:var(--panel);font-size:13.5px;color:var(--ink-dim);line-height:1.7;margin-top:14px}
 footer{padding:26px 4vw 44px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:12px;line-height:1.8;max-width:900px}
+/* ── tabs ── */
+.tabs{display:flex;gap:4px;padding:0 4vw;border-bottom:1px solid var(--line)}
+.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--ink-dim);
+  font-family:var(--sans);font-size:15px;padding:14px 18px;cursor:pointer;letter-spacing:.02em}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:500}
+/* ── portfolio ── */
+#view-portfolio{display:none;padding:26px 4vw 60px}
+.pf-add{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid var(--line2);background:var(--panel);padding:18px;margin-bottom:24px}
+.pf-add .fld{display:flex;flex-direction:column;gap:6px}
+.pf-add .fld label{font-size:11.5px;color:var(--ink-faint);letter-spacing:.06em}
+.pf-add input,.pf-add select{background:var(--bg2);border:1px solid var(--line2);color:var(--ink);
+  font-family:var(--sans);font-size:14px;padding:9px 12px;border-radius:2px;outline:none;width:150px}
+.pf-add input:focus,.pf-add select:focus{border-color:var(--gold-soft)}
+.pf-add .hint{font-size:11.5px;color:var(--ink-faint);width:100%}
+.btn{background:rgba(212,169,78,.14);border:1px solid rgba(212,169,78,.5);color:var(--gold);
+  font-family:var(--sans);font-size:14px;font-weight:500;padding:9px 22px;border-radius:2px;cursor:pointer}
+.btn:hover{background:rgba(212,169,78,.24)}
+.btn-x{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:15px;padding:4px 8px}
+.btn-x:hover{color:var(--red)}
+.pf-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:24px 0}
+.pf-summary .cell .v{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--gold)}
+.pf-summary .cell .v small{font-size:13px;color:var(--ink-dim);font-family:var(--sans);font-weight:300}
+#pftable{min-width:820px}
+#pftable td,#pftable th{white-space:nowrap}
+.pf-controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:30px 0 14px}
+.pf-controls label{font-size:12.5px;color:var(--ink-dim);display:flex;align-items:center;gap:8px}
+.pf-controls select{background:var(--panel);border:1px solid var(--line2);color:var(--ink);font-family:var(--sans);font-size:13.5px;padding:7px 12px;border-radius:2px;outline:none}
+.pf-empty{color:var(--ink-faint);font-size:14px;padding:30px 0;text-align:center}
+#pftable tbody tr,#pfproj tbody tr{cursor:default}
 @media (max-width:640px){
   header{padding-top:24px}
   .sheet-body,.sheet-head{padding-inline:20px}
@@ -148,6 +178,12 @@ footer{padding:26px 4vw 44px;border-top:1px solid var(--line);color:var(--ink-fa
 
 <div class="strip" id="strip"></div>
 
+<div class="tabs">
+  <button class="tab active" data-view="screener">סורק מניות</button>
+  <button class="tab" data-view="portfolio">מחשבון תיק</button>
+</div>
+
+<div id="view-screener">
 <div class="controls">
   <input type="search" id="q" placeholder="חיפוש שם או סימול…">
   <select id="fsec"><option value="">כל הסקטורים</option></select>
@@ -172,6 +208,71 @@ footer{padding:26px 4vw 44px;border-top:1px solid var(--line);color:var(--ink-fa
   <tbody id="rows"></tbody>
 </table>
 </div>
+</div><!-- /view-screener -->
+
+<div id="view-portfolio">
+  <div class="pf-add">
+    <div class="fld">
+      <label>מניה (סימול או שם)</label>
+      <input list="tickers" id="pf-t" placeholder="למשל JNJ" style="width:200px">
+      <datalist id="tickers"></datalist>
+    </div>
+    <div class="fld">
+      <label>כמות מניות</label>
+      <input type="number" id="pf-q" min="0.01" step="any" placeholder="10">
+    </div>
+    <div class="fld">
+      <label>מחיר קנייה למניה ($)</label>
+      <input type="number" id="pf-p" min="0.01" step="any" placeholder="ריק = מחיר נוכחי">
+    </div>
+    <button class="btn" id="pf-addbtn">הוספה לתיק</button>
+    <div class="hint">אם לא מזינים מחיר, יילקח המחיר הנוכחי (מוערך מהתשואה). הזנה חוזרת של אותה מניה מחליפה את השורה הקיימת.</div>
+  </div>
+
+  <div id="pf-body">
+    <div class="pf-summary" id="pf-summary"></div>
+
+    <div class="tablewrap" style="padding:0">
+    <table id="pftable">
+      <thead><tr>
+        <th>מניה</th><th>כמות</th><th>מחיר קנייה</th><th>עלות כוללת</th>
+        <th>דיבידנד למניה</th><th>הכנסה שנתית</th><th>תשואה על העלות</th>
+        <th>צמיחה (5ש')</th><th>% מהתיק</th><th></th>
+      </tr></thead>
+      <tbody id="pf-rows"></tbody>
+    </table>
+    </div>
+
+    <div class="pf-controls">
+      <h3 class="sect" style="margin:0">תחזית הכנסה מדיבידנד</h3>
+      <label>קצב צמיחה לפי
+        <select id="pf-growth">
+          <option value="c5" selected>5 שנים אחרונות</option>
+          <option value="c10">10 שנים אחרונות</option>
+          <option value="c1">שנה אחרונה</option>
+          <option value="min">שמרני (הנמוך מביניהם)</option>
+        </select>
+      </label>
+      <label>שנים קדימה
+        <select id="pf-years">
+          <option value="5">5</option><option value="10" selected>10</option>
+          <option value="15">15</option><option value="20">20</option>
+        </select>
+      </label>
+    </div>
+    <div class="chartbox" id="pf-chart"></div>
+
+    <div class="tablewrap" style="padding:20px 0 0">
+    <table id="pfproj" style="min-width:640px">
+      <thead id="pf-proj-head"></thead>
+      <tbody id="pf-proj-rows"></tbody>
+    </table>
+    </div>
+
+    <div class="note">התחזית מניחה שכל מניה תמשיך להעלות את הדיבידנד בקצב ההיסטורי שנבחר — הנחה בלבד, לא הבטחה. החישוב אינו כולל השקעה מחדש של דיבידנדים, מס במקור או שינויים במחיר המניה.</div>
+  </div>
+  <div class="pf-empty" id="pf-empty">התיק ריק — הוסיפו מניה ראשונה כדי לראות את החישוב.</div>
+</div><!-- /view-portfolio -->
 
 <footer>
   <b style="color:var(--gold-soft)">הבהרות:</b> מחירי המניות, סכומי הדיבידנד והתשואות נמשכו מנתוני מסחר חיים ב-10.7.2026. נתוני היסוד (רווח, תזרים, חוב, יחסי חלוקה) נכונים לתחילת 2026 ואינם מתעדכנים אוטומטית. גרף היסטוריית הדיבידנד משוחזר מקצבי הצמיחה (מקורב). יחס חלוקה נמדד מהרווח המתואם — ובחברות נדל"ן ותשתיות צנרת מ-FFO/DCF כמקובל. אין לראות במידע המלצה או ייעוץ השקעות.
@@ -464,6 +565,143 @@ $("#ovl").addEventListener("click",closeSheet);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 
 renderStrip();render();
+
+/* ─────────── tabs ─────────── */
+document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b===btn));
+  const v=btn.dataset.view;
+  $("#view-screener").style.display=v==="screener"?"":"none";
+  $("#view-portfolio").style.display=v==="portfolio"?"block":"none";
+}));
+
+/* ─────────── portfolio calculator ─────────── */
+const PF_KEY="divPortfolio";
+let PF=[];
+try{PF=JSON.parse(localStorage.getItem(PF_KEY))||[]}catch(e){PF=[]}
+PF=PF.filter(h=>DATA.some(d=>d.t===h.t));
+
+/* current price estimated from yield: price = annual dividend / (yield/100) */
+const curPrice=d=>d.div/(d.yld/100);
+const fmt$=v=>v.toLocaleString("en-US",{maximumFractionDigits:0});
+const fmt$2=v=>v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* datalist for the stock picker */
+DATA.forEach(d=>{
+  const o=document.createElement("option");
+  o.value=d.t;o.label=`${d.n} · ${d.s}`;
+  $("#tickers").appendChild(o);
+});
+
+function savePF(){localStorage.setItem(PF_KEY,JSON.stringify(PF))}
+
+function growthRate(d){
+  const mode=$("#pf-growth").value;
+  if(mode==="min")return Math.min(d.c1,d.c5,d.c10);
+  return d[mode];
+}
+
+function addHolding(){
+  const raw=$("#pf-t").value.trim();
+  const q=parseFloat($("#pf-q").value);
+  const d=DATA.find(x=>x.t.toLowerCase()===raw.toLowerCase()||x.n===raw);
+  if(!d){alert("המניה לא נמצאה במאגר — יש לבחור סימול מהרשימה.");return}
+  if(!(q>0)){alert("יש להזין כמות מניות חיובית.");return}
+  let p=parseFloat($("#pf-p").value);
+  if(!(p>0))p=curPrice(d);
+  const ex=PF.find(h=>h.t===d.t);
+  if(ex){ex.q=q;ex.p=p}else PF.push({t:d.t,q,p});
+  savePF();
+  $("#pf-t").value=$("#pf-q").value=$("#pf-p").value="";
+  renderPF();
+}
+$("#pf-addbtn").addEventListener("click",addHolding);
+["pf-t","pf-q","pf-p"].forEach(id=>$("#"+id).addEventListener("keydown",e=>{if(e.key==="Enter")addHolding()}));
+$("#pf-growth").addEventListener("input",renderPF);
+$("#pf-years").addEventListener("input",renderPF);
+
+function removeHolding(t){PF=PF.filter(h=>h.t!==t);savePF();renderPF()}
+
+function pfChart(years,totals){
+  const W=680,H=210,P={t:20,r:8,b:26,l:8};
+  const max=Math.max(...totals);
+  const bw=(W-P.l-P.r)/totals.length;
+  let bars="",labels="";
+  totals.forEach((v,i)=>{
+    const h=(v/max)*(H-P.t-P.b);
+    const x=P.l+i*bw,y=H-P.b-h;
+    const first=i===0,last=i===totals.length-1;
+    bars+=`<rect x="${(x+bw*0.14).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.72).toFixed(1)}" height="${h.toFixed(1)}" rx="1"
+      fill="${first?'var(--gold)':'rgba(79,201,138,.45)'}"/>`;
+    const step=totals.length>12?Math.ceil(totals.length/10):1;
+    if(i%step===0||last)labels+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--ink-faint)">${years[i]}</text>`;
+    if(first||last)labels+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="11" fill="${first?'var(--gold)':'var(--green)'}">${fmt$(v)}$</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block" role="img" aria-label="תחזית הכנסה שנתית">${bars}${labels}</svg>
+    <div class="cap">הכנסה שנתית צפויה מדיבידנד ($) — עמודה ראשונה: השנה הקרובה</div>`;
+}
+
+function renderPF(){
+  const has=PF.length>0;
+  $("#pf-body").style.display=has?"":"none";
+  $("#pf-empty").style.display=has?"none":"";
+  if(!has)return;
+
+  const rows=PF.map(h=>{
+    const d=DATA.find(x=>x.t===h.t);
+    return {h,d,cost:h.q*h.p,income:h.q*d.div,g:growthRate(d)};
+  });
+  const totCost=rows.reduce((s,r)=>s+r.cost,0);
+  const totIncome=rows.reduce((s,r)=>s+r.income,0);
+  const wAvgG=rows.reduce((s,r)=>s+r.income*r.g,0)/totIncome;
+
+  /* holdings table */
+  $("#pf-rows").innerHTML=rows.map(r=>`<tr>
+    <td><span class="tk">${r.d.t}</span> &nbsp;<span class="nm">${r.d.n}</span></td>
+    <td>${r.h.q}</td>
+    <td>${fmt$2(r.h.p)}$</td>
+    <td>${fmt$(r.cost)}$</td>
+    <td>${r.d.div.toFixed(2)}$</td>
+    <td><b style="font-weight:500;color:var(--green)">${fmt$2(r.income)}$</b></td>
+    <td>${(r.income/r.cost*100).toFixed(2)}%</td>
+    <td>${fmtC(r.d.c5)}%</td>
+    <td>${(r.cost/totCost*100).toFixed(1)}%</td>
+    <td><button class="btn-x" onclick="removeHolding('${r.d.t}')" aria-label="הסרה">✕</button></td>
+  </tr>`).join("");
+
+  /* summary strip */
+  $("#pf-summary").innerHTML=[
+    [fmt$(totCost)+"$","שווי התיק (לפי עלות)"],
+    [fmt$2(totIncome)+"$","הכנסה שנתית צפויה"],
+    [fmt$2(totIncome/12)+"$","ממוצע חודשי"],
+    [(totIncome/totCost*100).toFixed(2)+"%","תשואת דיבידנד על העלות"],
+    [wAvgG.toFixed(1)+"%","צמיחה שנתית משוקללת"],
+  ].map(([v,l])=>`<div class="cell"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+
+  /* projection */
+  const N=+$("#pf-years").value,y0=2026;
+  const years=[],totals=[];
+  for(let i=0;i<=N;i++){
+    years.push(y0+i);
+    totals.push(rows.reduce((s,r)=>s+r.income*Math.pow(1+r.g/100,i),0));
+  }
+  $("#pf-chart").innerHTML=pfChart(years,totals);
+
+  /* projection table: a row per holding, columns at milestones */
+  const marks=[0,1,3,5,10,15,20].filter(i=>i<=N);
+  if(marks[marks.length-1]!==N)marks.push(N);
+  $("#pf-proj-head").innerHTML=`<tr><th>מניה</th>${marks.map(i=>`<th>${y0+i}</th>`).join("")}<th>סה"כ מצטבר</th></tr>`;
+  const cum=r=>{let s=0;for(let i=0;i<=N;i++)s+=r.income*Math.pow(1+r.g/100,i);return s};
+  $("#pf-proj-rows").innerHTML=rows.map(r=>`<tr style="cursor:default">
+    <td><span class="tk">${r.d.t}</span></td>
+    ${marks.map(i=>`<td>${fmt$(r.income*Math.pow(1+r.g/100,i))}$</td>`).join("")}
+    <td><b style="font-weight:500">${fmt$(cum(r))}$</b></td>
+  </tr>`).join("")+`<tr style="cursor:default;background:var(--panel)">
+    <td><b style="font-weight:500;color:var(--gold)">סה"כ התיק</b></td>
+    ${marks.map(i=>`<td><b style="font-weight:500;color:var(--gold)">${fmt$(totals[i])}$</b></td>`).join("")}
+    <td><b style="font-weight:500;color:var(--gold)">${fmt$(rows.reduce((s,r)=>s+cum(r),0))}$</b></td>
+  </tr>`;
+}
+renderPF();
 </script>
 </body>
 </html>
